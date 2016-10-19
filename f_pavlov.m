@@ -7,8 +7,8 @@ function  [ fx] = f_pavlov( x_t,theta,u_t,in )
 % - in : []
 
 alpha = 1./(1+exp(-theta(1)));
-% gamma =  1./(1+exp(-theta(2)));
-gamma =  0;
+gamma =  1./(1+exp(-theta(2)));
+% gamma =  0;
 
 cs = u_t(3);
 us = u_t(4);
@@ -17,10 +17,10 @@ if in.noCS
 else
     if cs
         fx(1) = x_t(1) + alpha*(us-x_t(1));
-        fx(2) = x_t(2)+ gamma*alpha*(us-x_t(1));
+        fx(2) = x_t(2)+ (alpha-gamma)*(us-x_t(1));
     else
         fx(2) = x_t(2) + alpha*(us-x_t(2));
-        fx(1) = x_t(1)+ gamma*alpha*(us-x_t(2));
+        fx(1) = x_t(1)+ (alpha-gamma)*(us-x_t(2));
     end
 end
 

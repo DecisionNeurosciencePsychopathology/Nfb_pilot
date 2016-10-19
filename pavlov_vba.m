@@ -14,7 +14,7 @@ f_fname = @f_pavlov; % evolution function (Q-learning)
 fit_subjects = 1;
 sanity_checks = 0;
 censor_zeros = 0;
-stop_after_each_subject = 1;
+stop_after_each_subject = 0;
 y_feed_ratings = 0; %% predict only feedback ratings
 y_feed_and_exp_ratings = 1; %% this is a mixed-response model predicting both expectancy (infusion/no infusion) and feedback ratingss
 
@@ -98,9 +98,9 @@ g_fname = @g_feedback_ratings; % predicts feedback ratings as a function of expe
 elseif y_feed_and_exp_ratings
 y = [feedback_ratings(:,ct) stim_ratings(:,ct)]'; % make a mixed response of feedback and infusion ratings
 options.sources(1).out  = 1;
-options.sources(1).type = 0;
+options.sources(1).type = 1;
 options.sources(2).out  = 2;
-options.sources(2).type = 0;
+options.sources(2).type = 1;
 
 g_fname = @g_mixed;
 else
@@ -114,8 +114,8 @@ options.inF.noCS = 0;
 options.inG.noCS = 0;
 
 if y_sigmoid
-y = sigmoid(y);
-options.binomial = 0; 
+y = round(sigmoid(y));
+% options.binomial = 0; 
 end
 % y = y';
 
@@ -129,7 +129,7 @@ u = [cs 0; ...  % 1 infusion on current trial
 options.isYout      = zeros(size(y)) ;
 options.isYout=isnan(y) ;
 options.isYout(1) = 1;
-dim = struct('n',2,'n_theta',1,'n_phi',3);
+dim = struct('n',2,'n_theta',2,'n_phi',4);
 if options.inF.noCS
     dim.n = 1;
 end
