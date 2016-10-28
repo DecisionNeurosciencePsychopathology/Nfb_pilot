@@ -1,7 +1,7 @@
 function [gx] = g_mixed(Xt,Phi,u_t,inG)
 % Identity observation mapping (partially observable)
 
-beta = exp(Phi(1));  %% temperature
+beta = exp(Phi(1));  %% inverse temperature
 eta = 1./(1+exp(-Phi(2)));  %% expectancy sensitivity
 % epsilon = 1./(1+exp(-Phi(3)));  %% neurofeedback sensitivity
 epsilon = 1 ; % fixed NF sensitivity

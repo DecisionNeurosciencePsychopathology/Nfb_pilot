@@ -114,7 +114,7 @@ options.inF.noCS = 0;
 options.inG.noCS = 0;
 
 if y_sigmoid
-y = round(sigmoid(y));
+y = (sigmoid(y));
 % options.binomial = 0; 
 end
 % y = y';
