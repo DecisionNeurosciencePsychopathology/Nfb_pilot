@@ -7,8 +7,8 @@ function  [ fx] = f_pavlov( x_t,theta,u_t,in )
 % - in : []
 
 alpha = 1./(1+exp(-theta(1)));
-gamma =  1./(1+exp(-theta(2)));
-% gamma =  0;
+% gamma =  1./(1+exp(-theta(2)));
+gamma =  alpha;
 
 cs = u_t(3);
 us = u_t(4);

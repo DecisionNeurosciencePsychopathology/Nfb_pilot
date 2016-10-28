@@ -12,8 +12,8 @@ f_fname = @f_pavlov; % evolution function (Q-learning)
 % g_fname = @g_cr; %scales associative strength linearly
 
 fit_subjects = 1;
-sanity_checks = 0;
-censor_zeros = 0;
+sanity_checks = 1;
+censor_zeros = 1;
 stop_after_each_subject = 0;
 y_feed_ratings = 0; %% predict only feedback ratings
 y_feed_and_exp_ratings = 1; %% this is a mixed-response model predicting both expectancy (infusion/no infusion) and feedback ratingss
@@ -56,7 +56,7 @@ ylabel('Ratings, moving average')
 hold off;
 
 figure(100); clf;
-plot((feedback_ratings(cs,:)));
+plot((feedback_ratings(~cs,:)));
 % plot(smooth(y1(~cs))); legend Subject 1;hold on; plot(smooth(y2(~cs))); legend('subject 1', 'subject 2');  
 clear title xlabel ylabel;
 xlabel('No-infusion presentation')
@@ -129,7 +129,7 @@ u = [cs 0; ...  % 1 infusion on current trial
 options.isYout      = zeros(size(y)) ;
 options.isYout=isnan(y) ;
 options.isYout(1) = 1;
-dim = struct('n',2,'n_theta',2,'n_phi',4);
+dim = struct('n',2,'n_theta',1,'n_phi',4);
 if options.inF.noCS
     dim.n = 1;
 end
