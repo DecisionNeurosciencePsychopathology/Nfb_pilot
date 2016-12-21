@@ -13,14 +13,15 @@ gamma =  0;
 
 cs = u_t(3);
 us = u_t(4);
+congruent = u_t(6);
 if in.noCS
     fx(1) = x_t(1) + alpha*(us-x_t(1));
 else
-    if cs
+    if (cs && congruent) || (~cs && ~congruent) % actual infusion on previous trial
         fx(1) = x_t(1) + alpha*(us-x_t(1));
         fx(2) = x_t(2)+ gamma*alpha*(us-x_t(1));
-    else
-        fx(2) = x_t(2) + alpha*(us-x_t(2));
+    elseif (~cs && congruent) || (cs && ~congruent)  % no actual infusion on previous trial
+        fx(2) = x_t(2) + alpha*(us-x_t(2));  % no infusion on previous trial
         fx(1) = x_t(1)+ gamma*alpha*(us-x_t(2));
     end
 end
