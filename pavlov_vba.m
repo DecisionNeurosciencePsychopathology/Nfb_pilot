@@ -1,20 +1,17 @@
-% pavlov_vba
-% fits Pavlovian RW-like model to Pecina neurofeedback placebo task
+% fits Pavlovian RW-like model or a no-learning model to Pecina neurofeedback placebo task
 % first run read_nf_data.m
 close all
 % clear variables
+% read_nf_data
 
 
 
-
-f_fname = @f_pavlov; % evolution function (Q-learning)
-% g_fname = @g_Id; % observation function (softmax mapping)
-% g_fname = @g_cr; %scales associative strength linearly
 
 fit_subjects = 1;
 sanity_checks = 0;
+diagnose = 0;
 censor_zeros = 0;
-stop_after_each_subject = 1;
+stop_after_each_subject = 0;
 y_feed_ratings = 0; %% predict only feedback ratings
 y_feed_and_exp_ratings = 1; %% this is a mixed-response model predicting both expectancy (infusion/no infusion) and feedback ratingss
 
@@ -23,7 +20,7 @@ decay = 0;
 biases = 0;
 infusion_expectancy = 1;
 learning = 1;
-
+graphics = 0;
 
 %% read in data
 % data_dir = '/Users/localadmin/Dropbox/data_projects/placebo_marta/';
@@ -59,10 +56,8 @@ xlabel('blue: Infusion, Red: no infusion')
 ylabel('Ratings, moving average')
 hold on;
 plot(smooth(mean(~isnan(stim_ratings(~cs,:)),2)));
-% plot(smooth(y1(~cs))); legend Subject 1;hold on; plot(smooth(y2(~cs))); legend('subject 1', 'subject 2');  
 hold off;
 end
-% see if they learn the infusion value
 
 if censor_zeros
 feedback_ratings(feedback_ratings==0) = NaN;
@@ -70,26 +65,19 @@ stim_ratings(stim_ratings==0) = NaN;
 end
 
 %% diagnose feedback ratings distribution
-diagnose = 0;
 if diagnose
 figure(101); clf;
-for sub = 12:size(feedback_ratings,2)
+for sub = 1:size(feedback_ratings,2)
     clear Fit;
     subplot(5,5,sub)
     scatter(us,feedback_ratings(:,sub)+rand./5); hold on;
     Fit = polyfit(us',feedback_ratings(:,sub),1);
     plot(polyval(us, Fit)); hold off;
-%     %     scatter(us(cs),feedback_ratings(cs,sub)+rand./5)
-%     hold on;
-%     %     scatter(us(~cs),feedback_ratings(~cs,sub)+rand./5)
-%     Fit = polyfit(us(~cs)',feedback_ratings(~cs,sub)+rand./5,1);
-%     plot(polyval(Fit,us(~cs)));
-% hold off; 
 
 end
 end
 
-for ct=9:size(feedback_ratings,2) % skip the 1st subject
+for ct=1:size(feedback_ratings,2) % skip the 1st subject
 %% define response
 if y_feed_ratings
 y = feedback_ratings(:,ct);
@@ -152,7 +140,29 @@ options.inG.decay = decay;
 options.inG.biases = biases;
 options.inG.infusion_expectancy = infusion_expectancy;
 
+if learning
+f_fname = @f_pavlov; % evolution function (Q-learning)
 dim = struct('n',2,'n_theta',1,'n_phi',2);
+priors.muTheta = zeros(dim.n_theta,1);
+priors.SigmaTheta = 1e1*eye(dim.n_theta); 
+% priors.muTheta = 0.1*ones(dim.n_theta,1); %% fix LR
+priors.muX0 = zeros(dim.n,1);
+% priors.SigmaTheta = 0*eye(dim.n_theta);  %% fix LR
+priors.SigmaX0 = zeros*eye(dim.n);
+% priors.SigmaX0 = 1e1*eye(dim.n); %% try fitting prior expectancy
+
+if decay
+    dim.n = dim.n+1;
+    priors.muTheta(2) = 3;          % initialize feedback decay parameter
+    priors.muX0(3,1) = 1;           % initialize feedback salience at 1
+end
+
+else
+    dim = struct('n',0,'n_theta',0,'n_phi',2);
+    g_fname = @g_mixed_no_learn;
+
+
+end
 
 if biases
     dim.n_phi = dim.n_phi + 2;
@@ -161,31 +171,28 @@ if options.inF.noCS
     dim.n = dim.n-1;
 end
 
-if decay
-    dim.n = dim.n+1;
-end
 if infusion_expectancy
     dim.n_phi = dim.n_phi +1;
 end
 
 priors.muPhi = zeros(dim.n_phi,1);
-priors.muTheta = zeros(dim.n_theta,1);
-
-% priors.muTheta = 0.1*ones(dim.n_theta,1); %% fix LR
-priors.muX0 = zeros(dim.n,1);
-if decay
-    priors.muTheta(2) = 3;          % initialize feedback decay parameter
-    priors.muX0(3,1) = 1;           % initialize feedback salience at 1
-end
 priors.SigmaPhi = 1e1*eye(dim.n_phi);
-priors.SigmaTheta = 1e1*eye(dim.n_theta); 
-% priors.SigmaTheta = 0*eye(dim.n_theta);  %% fix LR
-priors.SigmaX0 = zeros*eye(dim.n);
-% priors.SigmaX0 = 1e1*eye(dim.n); %% try fitting prior expectancy
+
 priors.a_alpha = Inf;
 priors.b_alpha = 0;
 options.priors = priors;
-[posterior,out] = VBA_NLStateSpaceModel(y,u,f_fname,g_fname,dim,options);
+
+%Turn graphics on or off
+if ~graphics
+    options.DisplayWin = 0;
+    options.GnFigs = 0;
+end
+
+if learning
+    [posterior,out] = VBA_NLStateSpaceModel(y,u,f_fname,g_fname,dim,options);
+else
+    [posterior,out] = VBA_NLStateSpaceModel(y,u,[],g_fname,dim,options);
+end
 % displayResults(posterior,out,y,x,x0,theta,phi,Inf,Inf);
 L(ct) = out.F;
 if stop_after_each_subject

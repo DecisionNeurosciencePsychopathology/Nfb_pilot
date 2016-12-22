@@ -69,8 +69,9 @@ figure(2); boxplot(p.stim_rating, p.stim); xlabel('Infusion'); ylabel('Rating');
 
 %% make sure stim is nominal
 
-p.stim = nominal(p.stim);
-p.stimlag = nominal(p.stimlag);
+% p.stim = nominal(p.stim);
+% p.stimlag = nominal(p.stimlag);
+% p.congruent = (strcmpi(cellstr(p.stim),'true') & p.feedback>0) | (strcmpi(cellstr(p.stim),'false') & p.feedback<0);
 
 % model1 = fitlme(p,'feedback_rating ~ 1 + feedback + trial + stim*trial + (feedback*trial + stim|subject)')
 % anova(model1)
@@ -95,7 +96,7 @@ feed_model_back_main = fitlme(p,'feedback_rating ~ 1 + feedback + feedback_ratin
 % anova(feed_model_back)
 
 % based on Marta's suggestion of adding stim_rating
-feed_model_simple = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + stim*trial + stim*feedback + (feedback + stim_rating + stim |subject)')
+feed_model_simple = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim *trial + feedback_ratinglag + (feedback + stim_rating + stim + feedback_ratinglag |subject)')
 
 % currently best model
 feed_model_lagged = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + feedback_ratinglag*stim_diff*trial + stim*trial + (feedback + stim_rating + stim  |subject)')
@@ -178,7 +179,7 @@ legend('fear', 'happy', 'scrambled', 'Location', 'southeast');
 ylabel('predicted response time')
 ax = gca;
 ax.XTick = [0 1]; ax.XTickLabel = {'Omission'; 'Reward'};
-title('Reward by emotion interaction on clock task response times (error bars = 95% CI)'
+title('Reward by emotion interaction on clock task response times (error bars = 95% CI)')
 
 
 % [B,Bnames,stats] = randomEffects(model1);

@@ -69,8 +69,9 @@ figure(2); boxplot(p.stim_rating, p.stim); xlabel('Infusion'); ylabel('Rating');
 
 %% make sure stim is nominal
 
-p.stim = nominal(p.stim);
-p.stimlag = nominal(p.stimlag);
+% p.stim = nominal(p.stim);
+% p.stimlag = nominal(p.stimlag);
+% p.congruent = (strcmpi(cellstr(p.stim),'true') & p.feedback>0) | (strcmpi(cellstr(p.stim),'false') & p.feedback<0);
 
 % model1 = fitlme(p,'feedback_rating ~ 1 + feedback + trial + stim*trial + (feedback*trial + stim|subject)')
 % anova(model1)
@@ -94,15 +95,17 @@ feed_model = fitlme(p,'feedback_rating ~ 1 + feedback + trial + stim + (feedback
 feed_model_back_main = fitlme(p,'feedback_rating ~ 1 + feedback + feedback_ratinglag + trial + stim + (feedback + feedback_ratinglag + stim|subject)')
 % anova(feed_model_back)
 
-feed_model_simple = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + stim*trial + stim*feedback + (feedback + stim_rating + stim |subject)')
+% based on Marta's suggestion of adding stim_rating
+feed_model_simple = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + stim*trial + feedback_ratinglag*stimdiff + (feedback + stim_rating + stim |subject)')
 
-feed_model_lagged = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + feedbacklag + stim*trial + (feedback + stim_rating + stim  |subject)')
+% currently best model
+feed_model_lagged = fitlme(p,'feedback_rating ~ 1 + feedback*trial + stim_rating*stim + feedback_ratinglag*stim_diff*trial + stim*trial + (feedback + stim_rating + stim  |subject)')
 
 
 
 feed_model_back = fitlme(p,'feedback_rating ~ 1 + feedback+trial + feedback_ratinglag*trial*stim_diff +  stim + (feedback + feedback_ratinglag + stim|subject)')
 
-feed_model_back_pure = fitlme(p,'feedback_rating ~ 1 + feedback+trial + feedbacklag*trial*stim_diff +  stim + (feedback + feedbacklag + stim|subject)')
+% feed_model_back_pure = fitlme(p,'feedback_rating ~ 1 + feedback+trial + feedbacklag*trial*stim_diff +  stim + (feedback + feedbacklag + stim|subject)')
 
 
 compare(feed_model_back_pure, feed_model_back)
@@ -138,6 +141,11 @@ compare(exp_model,exp_model_congr)
 t = p;
 %fix predictors of no interest
 t.subject = nominal(ones(size(t.subject)));
+
+% will prediction run with undefined variables?  NO
+% t.subject = nominal(NaN(size(t.subject)));
+
+
 % t.trial = 30*ones(size(t.subject));
 t.trial = p.trial;
 t.feedback = ones(size(t.subject));
@@ -146,7 +154,7 @@ t.feedback = ones(size(t.subject));
 
 % get predicted response
 
-[yhat, yhatCI, df] = predict(feed_model_back,t);
+[yhat, yhatCI, df] = predict(feed_model_simple,t);
 
 % plot effects
 diff = t.stim_diff==1;
@@ -171,7 +179,7 @@ legend('fear', 'happy', 'scrambled', 'Location', 'southeast');
 ylabel('predicted response time')
 ax = gca;
 ax.XTick = [0 1]; ax.XTickLabel = {'Omission'; 'Reward'};
-title('Reward by emotion interaction on clock task response times (error bars = 95% CI)'
+title('Reward by emotion interaction on clock task response times (error bars = 95% CI)')
 
 
 % [B,Bnames,stats] = randomEffects(model1);
