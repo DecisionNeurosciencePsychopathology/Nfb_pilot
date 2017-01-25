@@ -11,7 +11,7 @@ fit_subjects = 1;
 sanity_checks = 0;
 diagnose = 0;
 censor_zeros = 0;
-stop_after_each_subject = 0;
+stop_after_each_subject = 1;
 y_feed_ratings = 0; %% predict only feedback ratings
 y_feed_and_exp_ratings = 1; %% this is a mixed-response model predicting both expectancy (infusion/no infusion) and feedback ratingss
 
@@ -19,8 +19,8 @@ y_sigmoid = 1;
 decay = 0;
 biases = 0;
 infusion_expectancy = 1;
-learning = 1;
-graphics = 0;
+learning = 0;
+graphics = 1;
 
 %% read in data
 % data_dir = '/Users/localadmin/Dropbox/data_projects/placebo_marta/';
@@ -183,10 +183,10 @@ priors.b_alpha = 0;
 options.priors = priors;
 
 %Turn graphics on or off
-if ~graphics
-    options.DisplayWin = 0;
-    options.GnFigs = 0;
-end
+
+options.DisplayWin = graphics;
+options.GnFigs = graphics;
+
 
 if learning
     [posterior,out] = VBA_NLStateSpaceModel(y,u,f_fname,g_fname,dim,options);
