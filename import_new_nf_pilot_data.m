@@ -170,15 +170,32 @@ plot(smooth(nanmean((a_stim_ratings))), 'LineWidth', 5); hold on;
 plot(smooth(nanmean((b_stim_ratings))), 'LineWidth', 5); 
 plot(smooth(nanmean((c_stim_ratings))),'LineWidth', 5); 
 plot(smooth(nanmean((d_stim_ratings))),'LineWidth', 5); hold off;
- title('Mean expectancy ratings');
+ title('Mean expectancy ratings'); legend('drug A', 'drug B', 'cal. C', ' cal. D')
  
 subplot(1,2,2);
 plot(smooth(nanmean((a_feed_ratings))),  'LineWidth', 5); hold on;
 plot(smooth(nanmean((b_feed_ratings))),  'LineWidth', 5); 
 plot(smooth(nanmean((c_feed_ratings))),  'LineWidth', 5); 
 plot(smooth(nanmean((d_feed_ratings))),  'LineWidth', 5); hold off;
- title('Mean neuro-feedback ratings');
+ title('Mean neuro-feedback ratings'); legend('drug A', 'drug B', 'cal. C', ' cal. D')
 
+ 
+figure(6)
+subplot(1,2,1);
+plot((nanmean((a_stim_ratings))),'*:', 'LineWidth', 2); hold on;
+plot((nanmean((b_stim_ratings))),'*:', 'LineWidth', 2); 
+plot((nanmean((c_stim_ratings))),'*:', 'LineWidth', 2); 
+plot((nanmean((d_stim_ratings))),'*:','LineWidth', 2); hold off;
+ title('Unsmoothed mean expectancy ratings'); legend('drug A', 'drug B', 'cal. C', ' cal. D')
+ 
+subplot(1,2,2);
+plot((nanmean((a_feed_ratings))),'*:',  'LineWidth', 2); hold on;
+plot((nanmean((b_feed_ratings))), '*:', 'LineWidth', 2); 
+plot((nanmean((c_feed_ratings))),  '*:','LineWidth', 2); 
+plot((nanmean((d_feed_ratings))),  '*:','LineWidth', 2); hold off;
+ title('Unsmoothed mean neuro-feedback ratings'); legend('drug A', 'drug B', 'cal. C', ' cal. D')
+
+ 
 % save data
  cd('../')
 writetable(b,'pilot_behav','FileType','text')

@@ -27,19 +27,23 @@ library(car)
 # import behavior, individual differences and betas data, check betas
 
 ```{r import_data}
-df <- read_csv("~/Google Drive/skinner/Pecina_k/alex_behav_full_merge_with_betas.csv")
+df <- read_csv("~/Google Drive/skinner/Pecina_k/alex_behav_full_merge_with_PEbetas.csv")
+
+# df <- read_csv("~/Google Drive/skinner/Pecina_k/alex_behav_full_merge_with_betas.csv")
 df$Sex <- as.factor(df$Sex)
 df$subject<- as.factor(df$subject)
 # rename ROIs
-df$visual1 <- df$CuneusVisual
-df$motor2 <- df$PostcentralMotor
-df$cing3 <- df$LRCingulateMedFrontalGy
-df$crbl4 <- df$Cerebellum
-df$str5 <- df$LLentiformNucPutamen
-df$striatum <- df$str5
-df$postc6 <-df$RPostcentral
-df$crbl7 <- df$Cerebellum2
-df$thal8 <- df$LThalamus
+df$L_postcentr <-  df$
+
+# df$visua1 <- df$CuneusVisual
+# df$motor2 <- df$PostcentralMotor
+# df$cing3 <- df$LRCingulateMedFrontalGy
+# df$crbl4 <- df$Cerebellum
+# df$str5 <- df$LLentiformNucPutamen
+# df$striatum <- df$str5
+# df$postc6 <-df$RPostcentral
+# df$crbl7 <- df$Cerebellum2
+# df$thal8 <- df$LThalamus
 
 ggplot(data = df, mapping = aes(df$cing3,df$str5)) +geom_point(mapping = aes(df$cing3,df$str5))
 
