@@ -6,9 +6,7 @@ output:
   pdf_document: default
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+#Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ``` {r load_libraries, message=F, warning=F}
 library(nlme)
@@ -39,17 +37,20 @@ df$new_striatum_5 <- df$PEmag_ventral_striatum
 df$new_cereb1_6 <- df$PEmag_right_cullmen
 df$new_cereb2_7 <- df$PEmag_cerebellum
 
+df <- subset(df, select=c(1:3,20:23,4:19,24:167))
+
+
 # sanity check for ROIs
 ggplot(data = df, mapping = aes(df$new_striatum_5, df$new_acc_3)) +geom_point(mapping = aes(df$new_striatum_5, df$new_acc_3))
 
 ```
 
-``` {r feedback}
+``` {r behavioral model of feedback ratings}
 # nm1 <- (lmer(feedback_rating ~ stim_rating + feedback + feedback_ratinglag + (1 +feedback + stim_rating |subject), df))
 # summary(nm1)
 # car::Anova(nm1)
 
-
+ # basic model
 nm2 <- (lmer(feedback_rating ~ stim_rating*stim + feedback + feedback_ratinglag + (1 +feedback + stim_rating |subject), df))
 summary(nm2)
 car::Anova(nm2)
@@ -58,6 +59,9 @@ car::Anova(nm2)
 ls_nm2 <- lsmeans(nm2,"stim_rating",by = "stim", at = list(stim_rating = c(-2,-1,0,1,2)))
 plot(ls_nm2, type ~ stim_rating, horiz=F, ylab = "Mood ratings", xlab = "Expectancy")
 
+```
+
+``` {r neural model of feedback ratings}
 nm3 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + new_visual_2*stim + (1 +feedback + stim_rating |subject), df))
 summary(nm3)
 car::Anova(nm3)
@@ -66,23 +70,31 @@ nm4 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag +
 summary(nm4)
 car::Anova(nm4)
 anova(nm3,nm4)
+# above model did not converge, to be investigated
+
 
 nm5 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + new_striatum_5*stim + (1 +feedback + stim_rating |subject), df))
 summary(nm5)
 car::Anova(nm5)
-anova(nm4,nm5)
+anova(nm3,nm5)
 
 ls_nm5 <- lsmeans(nm5,"stim",by = "new_striatum_5", at = list(new_striatum_5 = c(1,5,10)))
 setwd("/Users/localadmin/Google Drive/skinner/Pecina_k/results/")
 # pdf("str_modulation.pdf", width=5, height=3.5)
-plot(ls_nm5, type ~ stim, horiz=F, ylab = "Mood ratings", xlab = "infusion", main = "Striatal activity modulates effect of infusion")
+plot(ls_nm5, type ~ stim, horiz=F, ylab = "Mood ratings", xlab = "infusion", main = "Striatal activity modulates effect of infusion on mood ratings")
 
 ``` 
 
-``` {r expectancy}
-em1<- (lmer(stim_rating ~ stim + feedback_ratinglag*new_striatum_5  + (1 +stim  |subject), df))
+``` {r behavioral model of infusion ratings}
+## em stands for expectancy model - same as nm, but run on infusion ratings
+
+em1<- (lmer(stim_rating ~ stim + feedback_ratinglag  + (1 +stim  |subject), df))
 summary(em1)
 car::Anova(em1)
+
+```
+
+``` {r neural model of infusion ratings}
 
 em2<- (lmer(stim_rating ~ stim + feedback_ratinglag*new_striatum_5 + stim_diff  + (1 +stim  |subject), df))
 summary(em2)
@@ -93,42 +105,73 @@ ls_em2 <- lsmeans(em2,"feedback_ratinglag",by = "new_striatum_5", at = list(new_
 plot(ls_em2, type ~ stim, horiz=F, ylab = "Expectancy ratings", xlab = "Previous mood ratings", main = "Striatal activity modulates effect of earlier mood")
 # dev.off()
 
+```
+``` {r models of individual differences in feedback ratings: demographics}
 # include indiv. differences in feedback rating models
-
-# rescale
-numcols <- grep("^c\\.",names(df))
-
 # df$apathy <- scale(df$ApathyEvaluationScale)
 
+
+# im stands for "individual differences model"
+# first rerun the behavioral model
 im1 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + (1 +feedback + stim_rating |subject), df))
 summary(im1)
 car::Anova(im1)
 
-im2 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + df$DAS7*feedback + (1 +feedback + stim_rating |subject), df))
+
+im2 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + YearsOfEd*feedback*stim + (1 +feedback + stim_rating |subject), df, na.action = na.omit))
 summary(im2)
 car::Anova(im2)
-# anova(im1,im2)
 
+ls_im2 <- lsmeans(im2, "stim", by ="YearsOfEd", at = list(YearsOfEd = c(8,13,18)),data = df)
+plot(ls_im2, type ~ stim, horiz=F, by = "YearsOfEd",  ylab = "Mood ratings", xlab = "Reported mood")
 
-# im3 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + df$YearsOfEd*feedback*stim + (1 +feedback + stim_rating |subject), df))
-# summary(im3)
-# car::Anova(im3)
-# anova(im1,im3)
-# ls_im3 <- lsmeans(im3,"stim",by = "df$YearsOfEd", at = list(df$YearsOfEd = c(8,13,18)))
+im3 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + Sex*feedback*stim + (1 +feedback + stim_rating |subject), df, na.action = na.omit))
+summary(im3)
+car::Anova(im3)
 
-#ls_nm2 <- lsmeans(nm2,"stim_rating",by = "stim", at = list(stim_rating = c(-2,-1,0,1,2)))
-plot(ls_nm2, type ~ stim_rating, horiz=F, ylab = "Mood ratings", xlab = "Expectancy")
+ls_im2 <- lsmeans(im2, "stim", by ="YearsOfEd", at = list(YearsOfEd = c(8,13,18)),data = df)
+plot(ls_im2, type ~ stim, horiz=F, by = "YearsOfEd",  ylab = "Mood ratings", xlab = "Reported mood")
 
-
-# im4 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + df$new_striatum_5*stim + df$YearsOfEd*stim + (1 +feedback + stim_rating |subject), df))
-# summary(im4)
-# car::Anova(im4)
-# anova(im3,im4)
-
-ls_nm5 <- lsmeans(nm5,"stim",by = "new_striatum_5", at = list(new_striatum_5 = c(1,5,10)))
 
 ```
 
+``` {r models of individual differences: apathy}
+
+im2 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + df$DAS7*feedback + (1 +feedback + stim_rating |subject), df,na.action = na.omit))
+summary(im2)
+car::Anova(im2)
+
+```
+
+
+``` {r models of individual differences: endorphins -- to be completed}
+#take a log ratio of post/pre 
+df$endorf_post_to_pre_log_ratio <- log(df$endorf2/df$endorf1)
+hist(df$endorf2_1)
+hist(df$endorf_post_to_pre_log_ratio)
+
+# effects on feedback
+im4 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf1*feedback + (1 +feedback + stim_rating |subject), df))
+summary(im4)
+car::Anova(im4)
+
+im5 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf2*feedback + (1 +feedback + stim_rating |subject), df))
+summary(im5)
+car::Anova(im5)
+
+im6 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf_post_to_pre_log_ratio*feedback*stim + (1 +feedback + stim_rating |subject), df))
+summary(im6)
+car::Anova(im6)
+
+im7 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf_post_to_pre_log_ratio*feedback + (1 +feedback + stim_rating |subject), df))
+summary(im7)
+car::Anova(im7)
+anova(im6,im7)
+anova(im4,im7)
+anova(im5,im7)
+
+
+```
 
 <!-- ``` {r check_apathy} -->
 <!-- ggplot(data = df, mapping = aes(df$ApathyEvaluationScale,df$subject)) +geom_point(mapping = aes(df$ApathyEvaluationScale,df$subject)) -->
