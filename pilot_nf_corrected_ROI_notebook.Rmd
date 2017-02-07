@@ -46,6 +46,9 @@ ggplot(data = df, mapping = aes(df$new_striatum_5, df$new_acc_3)) +geom_point(ma
 ```
 
 ``` {r behavioral model of feedback ratings}
+## Behavioral results, mood ratings
+
+
 # nm1 <- (lmer(feedback_rating ~ stim_rating + feedback + feedback_ratinglag + (1 +feedback + stim_rating |subject), df))
 # summary(nm1)
 # car::Anova(nm1)
@@ -79,7 +82,7 @@ car::Anova(nm5)
 anova(nm3,nm5)
 
 ls_nm5 <- lsmeans(nm5,"stim",by = "new_striatum_5", at = list(new_striatum_5 = c(1,5,10)))
-setwd("/Users/localadmin/Google Drive/skinner/Pecina_k/results/")
+setwd("~/Google Drive/skinner/Pecina_k/results/")
 # pdf("str_modulation.pdf", width=5, height=3.5)
 plot(ls_nm5, type ~ stim, horiz=F, ylab = "Mood ratings", xlab = "infusion", main = "Striatal activity modulates effect of infusion on mood ratings")
 
@@ -87,6 +90,8 @@ plot(ls_nm5, type ~ stim, horiz=F, ylab = "Mood ratings", xlab = "infusion", mai
 
 ``` {r behavioral model of infusion ratings}
 ## em stands for expectancy model - same as nm, but run on infusion ratings
+
+## Behavioral results, expectancy
 
 em1<- (lmer(stim_rating ~ stim + feedback_ratinglag  + (1 +stim  |subject), df))
 summary(em1)
