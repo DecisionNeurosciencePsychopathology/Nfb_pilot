@@ -102,7 +102,7 @@ car::Anova(em2)
 
 ls_em2 <- lsmeans(em2,"feedback_ratinglag",by = "new_striatum_5", at = list(new_striatum_5 = c(1,5,10),feedback_ratinglag = c(-2,0,2)))
 # pdf("str_modulation_feedback_rating_lag.pdf", width=5, height=3.5)
-plot(ls_em2, type ~ stim, horiz=F, ylab = "Expectancy ratings", xlab = "Previous mood ratings", main = "Striatal activity modulates effect of earlier mood")
+plot(ls_em2, type ~ stim, horiz=F, ylab = "Expectancy ratings", xlab = "Previous mood ratings", main = "Striatal activity enhances the effect of previously reported mood")
 # dev.off()
 
 ```
@@ -123,14 +123,14 @@ summary(im2)
 car::Anova(im2)
 
 ls_im2 <- lsmeans(im2, "stim", by ="YearsOfEd", at = list(YearsOfEd = c(8,13,18)),data = df)
-plot(ls_im2, type ~ stim, horiz=F, by = "YearsOfEd",  ylab = "Mood ratings", xlab = "Reported mood")
+plot(ls_im2, type ~ stim, horiz=F, by = "YearsOfEd",  ylab = "Mood ratings", xlab = "Infusion")
 
-im3 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + Sex*feedback*stim + (1 +feedback + stim_rating |subject), df, na.action = na.omit))
-summary(im3)
-car::Anova(im3)
+#im3 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + Sex*feedback + (1 +feedback + stim_rating |subject), df, na.action = na.omit))
+#summary(im3)
+#car::Anova(im3)
 
-ls_im2 <- lsmeans(im2, "stim", by ="YearsOfEd", at = list(YearsOfEd = c(8,13,18)),data = df)
-plot(ls_im2, type ~ stim, horiz=F, by = "YearsOfEd",  ylab = "Mood ratings", xlab = "Reported mood")
+#ls_im3 <- lsmeans(im3, "feedback", by ="Sex",at = list(feedback = c(-2,-1,1,2)),data = df)
+#plot(ls_im3, type ~ feedback, horiz=F, by = "Sex",  ylab = "Mood ratings", xlab = "Neurofeedback")
 
 
 ```
@@ -146,9 +146,9 @@ car::Anova(im2)
 
 ``` {r models of individual differences: endorphins -- to be completed}
 #take a log ratio of post/pre 
-df$endorf_post_to_pre_log_ratio <- log(df$endorf2/df$endorf1)
+df$endorphine_change <- log(df$endorf2/df$endorf1)
 hist(df$endorf2_1)
-hist(df$endorf_post_to_pre_log_ratio)
+hist(df$endorphine_change)
 
 # effects on feedback
 im4 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf1*feedback + (1 +feedback + stim_rating |subject), df))
@@ -159,17 +159,20 @@ im5 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag +
 summary(im5)
 car::Anova(im5)
 
-im6 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf_post_to_pre_log_ratio*feedback*stim + (1 +feedback + stim_rating |subject), df))
+im6 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorphine_change*feedback*stim + (1 +feedback + stim_rating |subject), df))
 summary(im6)
 car::Anova(im6)
 
-im7 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorf_post_to_pre_log_ratio*feedback + (1 +feedback + stim_rating |subject), df))
+im7 <- (lmer(feedback_rating ~ stim_rating*stim + feedback +feedback_ratinglag + endorphine_change*feedback + (1 +feedback + stim_rating |subject), df))
 summary(im7)
 car::Anova(im7)
-anova(im6,im7)
-anova(im4,im7)
-anova(im5,im7)
+anova(im4,im5,im6,im7)
 
+ls_im7 <- lsmeans(im7,"feedback",by = "endorphine_change", at = list(endorphine_change = c(-4,0,4),feedback = c(-2,0,2)))
+# pdf("str_modulation_feedback_rating_lag.pdf", width=5, height=3.5)
+plot(ls_im7, type ~ feedback, horiz=F, ylab = "Reported mood change", xlab = "Previous mood ratings", main = "Increase in endorphin levels enhances the effect of neurofeedback")
+
+# add education
 
 ```
 
