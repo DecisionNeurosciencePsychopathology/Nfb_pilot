@@ -13,7 +13,7 @@ fprintf('\nCreating subject specific regressor files\n\n');
 %Make regs folder if it doesn't exist
 data_dump_str = 'regs/';
 if ~exist(data_dump_str,'file')
-    mkdir(sub_folder)
+    mkdir(data_dump_str)
 end
 
 
