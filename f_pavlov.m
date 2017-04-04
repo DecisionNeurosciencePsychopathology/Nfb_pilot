@@ -4,7 +4,13 @@ function  [ fx] = f_pavlov( x_t,theta,u_t,in )
 % - x_t : Q-values (2*1)
 % - P : learning rate (1*1)
 % - u_t : previous action and feedback
-% - in : []
+% - in : [fixed_learning_rate - if you want the learning rate to be fixed
+%         fixed_alpha - value of fixed learning rate
+%         decay - if feedback_salience should decay by epsilon]
+
+if in.fixed_learning_rate
+    theta(1) = in.fixed_alpha;
+end
 
 alpha = 1./(1+exp(-theta(1)));          % learning rate
 % epsilon =  1./(1+exp(-theta(2)));  % feedback decay
@@ -23,6 +29,9 @@ else
 feedback_salience = 1;
 end
 
+%By default
+tracked_value = x_t(1);
+
 if in.noCS
     fx(1) = x_t(1) + alpha*(feedback_salience*feedback-x_t(1));
 else 
@@ -32,12 +41,18 @@ else
     elseif (~cs && congruent) || (cs && ~congruent)  % no actual infusion on previous trial
         fx(2) = x_t(2) + alpha*(feedback_salience*feedback-x_t(2));
         fx(1) = x_t(1)+ (alpha-gamma)*(feedback_salience*feedback-x_t(2));
+        tracked_value = x_t(2);
     end
 end
 
 
 if in.decay
 fx(3) = (feedback_salience);  % this is the extent to which feedback has decayed 
+end
+
+
+if in.track_pe
+    fx(3) = feedback_salience*feedback-tracked_value;
 end
 
 %

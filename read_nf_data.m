@@ -24,6 +24,11 @@ fileID = fopen(filename,'r');
 % try regenerating the code from the Import Tool.
 dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false);
 
+%Get the headers (i.e. subject ids)
+T = readtable(filename);
+subjs = T.Properties.VariableNames;
+subjs=subjs(~cellfun('isempty',regexp(subjs,'Subject[0-9]+','match')));
+
 %% Close the text file.
 fclose(fileID);
 
@@ -138,4 +143,4 @@ stim_ratings = [InfusionNoinfusionRatings InfusionNoinfusionRatings1 InfusionNoi
     InfusionNoinfusionRatings21];
 
 %% Clear temporary variables
-clearvars filename delimiter formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp me rawNumericColumns rawCellColumns R;
+clearvars filename delimiter formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp me rawNumericColumns rawCellColumns R T;
