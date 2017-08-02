@@ -13,6 +13,15 @@ b.stim_OnsetTime = b.subjects.(b.id).infusion_onset_all_runs*1000; %Convert to m
 %b.missed_responses = ( b.stim_RT == 0 ); %Only included no responses
 %b.missed_responses = ( b.chosen_stim == 999 ); %Includes wrong button presses and rt == 0
 b.trials_to_censor = ~b.subjects.(b.id).run_censor_full; %DID I HAVE THIS BACKWARDS!? there was no '~' before 11/4
+
+%I was actually censoring the 0 trials :( let's try what we originally
+%thought was going on
+b.trials_to_censor = zeros(length(b.subjects.(b.id).run_censor_full),1);
+
+
+%Censor only the NANs in MDF file
+b.trials_to_censor  =~b.subjects.(b.id).response_nan_censor_full;
+
 %b.trials_to_censor(b.rewardVec==0) = 1; %Adding in the trials in which there was no reward as well.
 b.stim_NextOnsetTime = []; %Hacky work around to get matrices to play nice
 b.no_baseline_end_time = 394; %seconds (I don't really like hard coding this BE CAREFUL!)

@@ -3,8 +3,8 @@ function [gx] = g_feedback_ratings(Xt,Phi,u_t,inG)
 
 beta = exp(Phi(1));  %% temperature
 eta = 1./(1+exp(-Phi(2)));  %% expectancy sensitivity
-% epsilon = 1./(1+exp(-Phi(3)));  %% neurofeedback sensitivity
-lambda = Phi(4)./10;  %% bias
+epsilon = 1./(1+exp(-Phi(3)));  %% neurofeedback sensitivity
+%lambda = Phi(4)./10;  %% bias
 lambda = 0;
 cs = u_t(3);
 if cs || inG.noCS

@@ -16,7 +16,7 @@ no_baseline_rts = readtable('no_baseline_rts.csv');
 
 %Load in the feedback times
 %subj_data = readtable('MDFBaseline.csv');
-subj_data = readtable('MDFAllSubjects.csv');
+subj_data = readtable('non_interpolated_files/MdfResponseAll.csv');
 
 %total number of runs
 runs=6;
@@ -54,18 +54,20 @@ for i = 1:length(files)
         gen_vba_plots(posterior,out,i,scan_id{:})
     end
     
+    
+    %Comment out PE stuff for now
     s.subjects.(scan_id{:}).pe = posterior.muX(3,:);
-    
-    %Create PE parameterization using only 0,1,or -1
-    neg_index = s.subjects.(scan_id{:}).pe<0;
-    pos_index = s.subjects.(scan_id{:}).pe>0;
-    s.subjects.(scan_id{:}).pe_neg_pos_ones_only=zeros(length(s.subjects.(scan_id{:}).pe),1);
-    s.subjects.(scan_id{:}).pe_neg_pos_ones_only(neg_index)=-1;
-    s.subjects.(scan_id{:}).pe_neg_pos_ones_only(pos_index)=1;
-    
-    %Create PE parameterization using only 0,1,or 2    
-    s.subjects.(scan_id{:}).pe_pos_only_rounded = round(abs(s.subjects.(scan_id{:}).pe)); %Round the absolute values (or floor them?) 
-    s.subjects.(scan_id{:}).pe_pos_only_rounded(s.subjects.(scan_id{:}).pe_pos_only_rounded>=3)=2; %set max at 2
+%     
+%     %Create PE parameterization using only 0,1,or -1
+%     neg_index = s.subjects.(scan_id{:}).pe<0;
+%     pos_index = s.subjects.(scan_id{:}).pe>0;
+%     s.subjects.(scan_id{:}).pe_neg_pos_ones_only=zeros(length(s.subjects.(scan_id{:}).pe),1);
+%     s.subjects.(scan_id{:}).pe_neg_pos_ones_only(neg_index)=-1;
+%     s.subjects.(scan_id{:}).pe_neg_pos_ones_only(pos_index)=1;
+%     
+%     %Create PE parameterization using only 0,1,or 2    
+%     s.subjects.(scan_id{:}).pe_pos_only_rounded = round(abs(s.subjects.(scan_id{:}).pe)); %Round the absolute values (or floor them?) 
+%     s.subjects.(scan_id{:}).pe_pos_only_rounded(s.subjects.(scan_id{:}).pe_pos_only_rounded>=3)=2; %set max at 2
     
     s.subjects.(scan_id{:}).org_id = tmp_id;
     
@@ -109,16 +111,28 @@ for i = 1:length(files)
     if strcmp(scan_id{:},'NF122')
         s=pull_contrasts(s,scan_id{:},subj_data);
     end
-            
+                
     %Initialize censor struct
     s.subjects.(scan_id{:}).run_censor_full = [];
+    
+    %Initialize rating array
+    s.subjects.(scan_id{:}).all_actual_ratings = zeros((length(s.subjects.(scan_id{:}).infusion_ratings_all_runs)...
+        + length(s.subjects.(scan_id{:}).feedback_ratings_all_runs)),1);
+    
     s=pull_event_times(s,subj_data,runs,scan_id{:},'CENSOR');
     %s.subjects.(scan_id{:}).run_censor_full = ones(s.n_events,1); %Use this line if you need to do NOT want to censor the entire runs, i.e. keep the volumes with baseline trials
     %s.subjects.(scan_id{:}).run_censor_vba = [];
     
+    %Initialize the censor array that only takes NAN into account
+    s.subjects.(scan_id{:}).response_nan_censor_full = ones(length(s.subjects.(scan_id{:}).run_censor_full),1);
+    
+    
     %Grab trial-wise censor -- censor the trials we dont want! i.e. make them 0
-    s.subjects.(scan_id{:}).feedback_censor_array = ~isnan(out.y(1,:));
-    s.subjects.(scan_id{:}).infusion_censor_array = ~isnan(out.y(2,:));
+    s.subjects.(scan_id{:}).feedback_censor_array =  s.subjects.(scan_id{:}).feedback_ratings_all_runs~=0; % ~isnan(s.subjects.(scan_id{:}).feedback_ratings_all_runs)
+    s.subjects.(scan_id{:}).infusion_censor_array = s.subjects.(scan_id{:}).infusion_ratings_all_runs~=0;  %~isnan(s.subjects.(scan_id{:}).infusion_ratings_all_runs) 
+    
+    s.subjects.(scan_id{:}).feedback_nan_censor_array = ~isnan(s.subjects.(scan_id{:}).feedback_ratings_all_runs);
+    s.subjects.(scan_id{:}).infusion_nan_recensor_array = ~isnan(s.subjects.(scan_id{:}).infusion_ratings_all_runs);
     
     try
         %Update full run for censor vector
@@ -126,6 +140,17 @@ for i = 1:length(files)
         s.subjects.(scan_id{:}).run_censor_full(4:t_idx:end) = s.subjects.(scan_id{:}).feedback_censor_array;
         s.subjects.(scan_id{:}).run_censor_full(1:t_idx:end) = s.subjects.(scan_id{:}).infusion_censor_array;
         s.subjects.(scan_id{:}).run_censor_full(2:t_idx:end) = s.subjects.(scan_id{:}).infusion_censor_array;
+        
+        %Combine all ratings into a regressor just in case we need it for the future
+        s.subjects.(scan_id{:}).all_actual_ratings(1:2:end) = s.subjects.(scan_id{:}).infusion_ratings_all_runs;
+        s.subjects.(scan_id{:}).all_actual_ratings(2:2:end) = s.subjects.(scan_id{:}).feedback_ratings_all_runs;
+        
+        %Update full run for censor vector
+        s.subjects.(scan_id{:}).response_nan_censor_full(3:t_idx:end) =  s.subjects.(scan_id{:}).feedback_nan_censor_array;
+        s.subjects.(scan_id{:}).response_nan_censor_full(4:t_idx:end) =  s.subjects.(scan_id{:}).feedback_nan_censor_array;
+        s.subjects.(scan_id{:}).response_nan_censor_full(1:t_idx:end) = s.subjects.(scan_id{:}).infusion_nan_recensor_array;
+        s.subjects.(scan_id{:}).response_nan_censor_full(2:t_idx:end) = s.subjects.(scan_id{:}).infusion_nan_recensor_array;
+        
     catch
         continue
     end
@@ -182,11 +207,11 @@ for j = 1:runs
             %NOTE we currently censor the 0's, therefore in the future if
             %we are to include them we cannot just make the Nan response
             %values 0, just a warning!
-        if any(isnan(s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)])))
-            warning('Nans were found in eitherfeedback or infusion response variable! Currently this is bad, will now set all Nans to zeros!')
-            nan_index=isnan(s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)]));
-            s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)])(nan_index)=0;
-        end
+%         if any(isnan(s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)])))
+%             warning('Nans were found in eitherfeedback or infusion response variable! Currently this is bad, will now set all Nans to zeros!')
+%             nan_index=isnan(s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)]));
+%             s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)])(nan_index)=0;
+%         end
             
             
         s.subjects.(id).([lower(event) '_ratings_all_runs']) = [s.subjects.(id).([lower(event) '_ratings_all_runs']);  s.subjects.(id).([lower(event) '_ratings']).(['run' num2str(j)])];
