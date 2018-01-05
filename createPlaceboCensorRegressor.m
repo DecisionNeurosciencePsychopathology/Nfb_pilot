@@ -26,6 +26,33 @@ b.trials_to_censor  =~b.subjects.(b.id).response_nan_censor_full;
 b.stim_NextOnsetTime = []; %Hacky work around to get matrices to play nice
 b.no_baseline_end_time = 394; %seconds (I don't really like hard coding this BE CAREFUL!)
 
+
+%TODO create censors for positive and negative feedback trials only
+%See valence 1 = pos -1 = neg
+%Just to get this done...
+feedback_censor = [];
+t_length = length(b.subjects.(b.id).response_nan_censor_full)./length(b.Valence); 
+for i = 1:length(b.Valence)
+    feedback_censor = [feedback_censor; repmat(b.Valence(i),t_length,1)];
+end
+
+%If we want to create a censor file based on positive or negative feedback
+try
+    if strcmp(b.feeback_censor_value,'pos')
+        pos_feedback_censor = feedback_censor==1;
+        %Comment this out if you don't want to combine missed trials in the
+        %censor
+        %b.trials_to_censor = b.trials_to_censor .* pos_feedback_censor;
+        b.trials_to_censor = pos_feedback_censor;
+    else
+        neg_feedback_censor = feedback_censor==-1;
+        %b.trials_to_censor = b.trials_to_censor .* neg_feedback_censor;
+        b.trials_to_censor = neg_feedback_censor;
+    end
+catch
+end
+
+
 for block_n = 1:num_blocks
         %Set up trial ranges
     trial_index_1 = b.trial_index(block_n);

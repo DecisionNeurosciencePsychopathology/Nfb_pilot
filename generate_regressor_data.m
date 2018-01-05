@@ -101,6 +101,10 @@ for i = 1:length(files)
     s.subjects.(scan_id{:}).all_resp_event_onsets(1:2:end) = s.subjects.(scan_id{:}).infusionresponse_onset_all_runs;
     s.subjects.(scan_id{:}).all_resp_event_onsets(2:2:end) = s.subjects.(scan_id{:}).feedbackresponse_onset_all_runs;
     
+    
+    %For censor regression creation
+    t_length = t_idx * length(s.subjects.(scan_id{:}).feedback_onset_all_runs);
+    
         
     %Get the contrasts values (Salience,Valence, ect)
     if strcmp(scan_id{:},'NF122')
@@ -119,7 +123,8 @@ for i = 1:length(files)
     %s.subjects.(scan_id{:}).run_censor_vba = [];
     
     %Initialize the censor array that only takes NAN into account
-    s.subjects.(scan_id{:}).response_nan_censor_full = ones(length(s.subjects.(scan_id{:}).run_censor_full),1);
+    %s.subjects.(scan_id{:}).response_nan_censor_full = ones(length(s.subjects.(scan_id{:}).run_censor_full),1);
+    s.subjects.(scan_id{:}).response_nan_censor_full = ones(t_length,1);
     
     
     %Grab trial-wise censor -- censor the trials we dont want! i.e. make them 0
@@ -134,8 +139,11 @@ for i = 1:length(files)
 %     s.subjects.(scan_id{:}).infusion_nan_recensor_array = ~isnan(s.subjects.(scan_id{:}).infusion_ratings_raw(:,1));
     
     %To include 0's as well
-    s.subjects.(scan_id{:}).feedback_nan_censor_array = ~isnan(s.subjects.(scan_id{:}).feedback_ratings_raw(:,1)) .* s.subjects.(scan_id{:}).feedback_ratings_all_runs(:,1)~=0;
-    s.subjects.(scan_id{:}).infusion_nan_recensor_array = ~isnan(s.subjects.(scan_id{:}).infusion_ratings_raw(:,1)) .* s.subjects.(scan_id{:}).infusion_ratings_all_runs(:,1)~=0;
+    %s.subjects.(scan_id{:}).feedback_nan_censor_array = ~isnan(s.subjects.(scan_id{:}).feedback_ratings_raw(:,1)) .* s.subjects.(scan_id{:}).feedback_ratings_all_runs(:,1)~=0;
+    %s.subjects.(scan_id{:}).infusion_nan_recensor_array = ~isnan(s.subjects.(scan_id{:}).infusion_ratings_raw(:,1)) .* s.subjects.(scan_id{:}).infusion_ratings_all_runs(:,1)~=0;
+    
+    s.subjects.(scan_id{:}).feedback_nan_censor_array = ~isnan(s.subjects.(scan_id{:}).feedback_ratings_raw(:,1));
+    s.subjects.(scan_id{:}).infusion_nan_recensor_array = ~isnan(s.subjects.(scan_id{:}).infusion_ratings_raw(:,1));
     
     try
         %Update full run for censor vector
